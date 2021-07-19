@@ -1,0 +1,611 @@
+<html>
+    
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<head>
+
+        <link rel="icon" href="eb.png">
+        <title>Grammar learning</title>
+        <script type="text/javascript">
+
+			
+        	var pastVerbs = 
+        	{ 
+        		"open":"opened", "count":"counted", "hate":"hated", 
+        		"learn":"learnt", "order":"ordered", "catch":"caught", 
+				"create":"created", "own":"owned", "share":"shared", 
+				"hear":"heard", "cry":"cried", "lie":"lied", "pay":"paid",
+				"think":"thought", "like":"liked", "dance":"danced", 
+				"remember":"remebered", "travel":"traveled", "live":"lived", 
+				"play":"played", "sleep":"slept", "try":"tried",
+				"close":"closed", "lose":"lost", "collect":"collected", 
+				"feel":"felt", "love":"loved", "understand":"understood", 
+				"come":"came", "make":"made", "use":"used", "speak":"spoke", 
+				"watch":"watched", "believe":"believed", "draw":"drew", 
+				"see":"saw", "win":"won", "wish":"wished", "read":"read", 
+				"sell":"sold", "cook":"cooked", "know":"knew", "work":"worked", 
+				"go":"went"
+			};
+			const suceessSound = $('.audio')[0]
+			const failSound = $('.audio')[1]
+			$('.low').prop("volume", 0.8); //set volume to audios
+
+        	function genSentenceEN(t, f, p, v)
+        	{
+        		function getAux()
+        		{
+        			if(t == "F")
+        			{
+        				if(f == "?" || f == ".")
+	        				return "will";
+	        			else
+	        				return "will not";
+        			}
+        			else if(t == "R")
+					{
+						if(f == "?")
+						{
+							if(p == "he" || p == "she")
+								return "does";
+							else
+								return "do";
+						}
+						else if(f == "~")
+						{
+							if(p == "he" || p == "she")
+								return "doesn't";
+							else
+								return "don't";
+						}
+						else 
+							return "";
+					}
+					else
+					{
+						if(f == "?")
+							return "did";
+						else if(f == "~")
+							return "didn't";
+						else
+							return "";
+					}
+        		}
+        		
+        		function getVerb()
+        		{
+        			if(t == "R" && (p == "he" || p == "she") && f == ".")
+        			{
+        				if(v.match(/(s|z|x|tch|ch|sh)$/))
+        					return v + "es";
+        				else if(v.match(/[bcdfghjklmnpqrstvwxz]y$/))
+        					return v.slice(0, v.length - 1) + "ies";
+        				
+        				return v + "s";
+        			}
+        			else if(t == "P" && f == ".")
+        				return pastVerbs[v];
+        			else
+        				return v;
+        		}
+        		
+        		if(f == "?")
+        			return getAux() + " " + p + " " + getVerb() + "?";
+        		
+       			return p + " " + getAux() + " " + getVerb() + ".";
+        	}
+        	
+        	var verb = "love";
+        	var activeInput = null;
+        	
+        	function getKeys(obj)
+        	{
+        		if(Object.keys)
+        			return Object.keys(obj);
+        			
+        		var res = [];
+        		
+        		for(var k in obj)
+        		{
+        			res.push(k);
+        		}
+        		
+        		return res;
+        	}
+        	function answerIsCorrectDom(i)
+			 {
+  				suceessSound.play(); 
+  				$('#' + randomQuestions[i].letter).addClass('green');
+			 }
+			 
+			function answerIsWrongDom(i) {
+  			failSound.play(); 
+  			$('#' + randomQuestions[i].letter).addClass('red'); 
+				}
+
+        	function validateActiveInput()
+        	{
+        		if(!activeInput)
+        			return;
+        			
+      			var params = activeInput.id.split(/\s+/);
+      			
+      			var t = params[0];
+      			var f = params[1];
+      			var p = params[2];
+        			
+        		var valid = genSentenceEN(t, f, p, verb).replace(/\s+/g, "").toLowerCase();
+        		var actual = activeInput.value.replace(/\s+/g, "").toLowerCase();
+        		
+        		if(valid == actual)
+        			activeInput.style.color = "#080";
+        		else
+        			activeInput.style.color = "#800";
+        	}
+        	
+        	function clearInputs()
+        	{
+        		var inputs = document.getElementsByTagName('input');
+        		
+        		for(var i = 0; i < inputs.length; ++i)
+        			inputs[i].value = "";
+        	}
+        	
+        	function handleVerbClick(event)
+        	{
+        		if(verb == this.verb)
+        			return;
+        			
+        		verb = this.verb;
+        		
+        		clearInputs();
+        		
+        		document.getElementById("selected_verb").innerHTML = verb + " (" + pastVerbs[verb] + ")";
+				audio 
+        	}
+        	
+        	function selectRandomVerb()
+        	{
+        		var verbList = getKeys(pastVerbs);
+
+        		verb = verbList[Math.round(Math.random() * (verbList.length - 1))];
+        		
+        		clearInputs();
+        		
+        		document.getElementById("selected_verb").innerHTML = verb + " (" + pastVerbs[verb] + ")";
+        	}
+        	
+        	function handleInputFocus(event)
+        	{
+        		activeInput = this;
+        	}
+        	
+        	function handleInputBlur(event)
+        	{
+        		activeInput = null;
+        	}
+        	
+        	function handleKeyDown(event)
+        	{
+        		if(activeInput)
+        			window.setTimeout(validateActiveInput, 0);
+        	}
+        	
+        	function genVerbs()
+        	{
+        		var ul = document.getElementById("verbs");
+        		
+        		var verbList = getKeys(pastVerbs).sort();
+        		
+        		for(var i = 0; i < verbList.length; ++i)
+        		{
+        			var item = document.createElement("li");
+        			item.verb = verbList[i];
+        			item.innerHTML = verbList[i] + " (" + pastVerbs[verbList[i]] + ")";
+        			item.onclick = handleVerbClick;
+        			ul.appendChild(item);
+        		}
+        	}
+        	
+        	function init()
+        	{
+        		var inputs = document.getElementsByTagName("input");
+        		
+        		for(var i = 0; i < inputs.length; ++i)
+        		{
+        			inputs[i].onblur  = handleInputBlur;
+        			inputs[i].onfocus = handleInputFocus;
+        		}
+        		
+        		document.onkeydown = handleKeyDown;
+        		
+        		genVerbs();
+        		
+        		selectRandomVerb();
+        	}
+        	
+        	function fillValid()
+        	{
+        		var inputs = document.getElementsByTagName("input");
+        		
+        		for(var i = 0; i < inputs.length; ++i)
+        		{
+	      			var params = inputs[i].id.split(/\s+/);
+      			
+		  			var t = params[0];
+		  			var f = params[1];
+		  			var p = params[2];
+        			
+        			var valid = genSentenceEN(t, f, p, verb).replace(/\s+/g, " ");
+        			inputs[i].value = valid[0].toUpperCase() + valid.slice(1);
+        			inputs[i].style.color = "#080";
+        		}
+        	}
+        	
+        </script>
+        <style type="text/css">
+        	body
+        	{
+				font-family: Georgia; 
+				background-color:khaki;
+        	}
+        	
+        	table
+        	{
+        		border: 3px solid rgb(95, 124, 168);
+        		border-collapse: collapse;
+        	}
+        	
+        	table td
+        	{
+        		border: 3px solid #06F;
+        		padding: 4px;
+        	}
+        	
+        	table td.header
+        	{
+        		border: 3px solid #06F;
+        	}
+        	
+        	input[type="text"]
+        	{
+        		border: 1px solid black;
+        	}
+        	
+        	table td div
+        	{
+        		clear:both;
+        	}
+        	
+        	table td div div
+        	{
+        		float:left;
+        	}
+        	
+        	table td div input[type="text"]
+        	{
+	        	float:right;
+        	}
+        	
+			div#verb_wrapper ul#verbs
+			{
+				list-style-type: none;
+				width: 32em;
+			}
+
+			div#verb_wrapper ul#verbs li
+			{
+				display: block;
+				float: left;
+				width: 16em;
+				cursor: default;
+			}
+			
+			div#verb_wrapper ul#verbs li:hover
+			{
+				background-color: #8F8;
+			}
+			
+			div#verb_wrapper ul#verbs + br
+			{
+				clear: left;
+			}
+
+			div#verb_wrapper
+			{
+				margin: 1em;
+			}
+			audio {
+ 			 display: none; 
+			}
+    	
+        </style>
+    </head>
+    <body onload="init();">
+		<embed src="Sleep Away.mp3" loop="true" autostart="true" width="2"
+         height="0">
+    	<center><h1><font >English verb conjugator </font></h1></center>
+		<br>
+		<br>
+		<a class="button" href="https://englishbolega.com/games/" role="button" style="padding: 0.45rem;background-color:#eaaf69;border: black;max-width: 150px;width: 200px;margin :0.6rem;border: 0; font-style : normal; color: black; font-size: 1.2rem; text-decoration: none; float: right;">Play More Games</a>
+
+		<audio class="audio">
+			<source type="audio/mp3" src="coin.mp3">
+		</audio>
+		<audio class="audio loud">
+			<source type="audio/mp3" src="bump.mp3">
+		</audio>		
+		<div style="float:left;">
+    	<b>1. Choose a verb from the list</b><br>
+    	<div id="verb_wrapper">
+    		<ul id="verbs"></ul>
+    		<br>
+    	</div>
+    	<p>
+	    	<button onclick="selectRandomVerb();" >Choose random word</button>
+    	</p>
+    	<p>
+    		The second form of the verb is indicated in brackets.
+    	</p>
+    	</div>
+    	
+		<div style="float:left;">
+    	<b>2. Fill in the table for each pronoun</b><br>
+    	
+    	<h2 id="selected_verb">love</h2>
+    	
+		<table style="clear:both;">
+			<tr><td class="header">Time</td><td class="header">Question</td><td class="header">Statement</td><td class="header">Negation</td></tr>
+			<tr><td class="header">Future</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="F ? i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="F ? you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="F ? he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="F ? she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="F ? we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="F ? they" type="text">
+					</div>
+				</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="F . i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="F . you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="F . he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="F . she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="F . we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="F . they" type="text">
+					</div>
+				</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="F ~ i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="F ~ you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="F ~ he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="F ~ she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="F ~ we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="F ~ they" type="text">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="header">Present</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="R ? i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="R ? you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="R ? he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="R ? she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="R ? we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="R ? they" type="text">
+					</div>
+				</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="R . i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="R . you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="R . he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="R . she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="R . we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="R . they" type="text">
+					</div>
+				</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="R ~ i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="R ~ you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="R ~ he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="R ~ she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="R ~ we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="R ~ they" type="text">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="header">Past</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="P ? i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="P ? you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="P ? he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="P ? she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="P ? we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="P ? they" type="text">
+					</div>
+				</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="P . i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="P . you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="P . he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="P . she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="P . we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="P . they" type="text">
+					</div>
+				</td>
+				<td>
+					<div>
+						<div>I:</div>
+						<input id="P ~ i" type="text">
+					</div>
+					<div>
+						<div>You:</div>
+						<input id="P ~ you" type="text">
+					</div>
+					<div>
+						<div>He:</div>
+						<input id="P ~ he" type="text">
+					</div>
+					<div>
+						<div>She:</div>
+						<input id="P ~ she" type="text">
+					</div>
+					<div>
+						<div>We:</div>
+						<input id="P ~ we" type="text">
+					</div>
+					<div>
+						<div>They:</div>
+						<input id="P ~ they" type="text">
+					</div>
+				</td>
+			</tr>
+		</table>
+		<p>
+		<button onclick="fillValid();">Show me the correct answers</button><br>
+		</p>
+		<p>
+			The text becomes <span style="color:green;">green</span> 
+			if the field is filled in correctly, and<span style="color:red;"> red</span> 
+			if there is a mistake.<br>
+			Don't forget punctuation marks (.?), Their absence is considered a mistake.
+		</p>
+		</div>
+    </body>
+</html>
